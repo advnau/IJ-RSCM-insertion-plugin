@@ -13,8 +13,20 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
                 super.visitNamedFunction(function)
 
                 // Extract the map from the @MagicConstant annotation
-                val replacementMap = extractReplacementMap(function)
-                if (replacementMap == null) return
+//                val replacementMap = extractReplacementMap(function)
+//                if (replacementMap == null) return
+
+                // Check for the @Nullable annotation
+                val nullableAnnotation = function.annotationEntries.find {
+                    it.shortName?.asString() == "Nullable"
+                } ?: return
+
+                // Get the value from the @Nullable annotation (which we are temporarily using)
+                val fileName = getFileNameFromAnnotation(nullableAnnotation) ?: return
+
+                // Get the map corresponding to the file name
+                val replacementMap = mapOfMaps[fileName] ?: return
+
                 // Find all parameters of type Int
                 val intParameters = function.valueParameters.filter { it.typeReference?.text == "Int" }
 
@@ -33,6 +45,10 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
         }
     }
 
+    private val mapOfMaps: Map<String, Map<Int, String>> by lazy {
+        loadRscmFiles("C:\\Users\\Home\\Downloads\\rscm\\")
+    }
+
     // Function to extract the map from the @MagicConstant annotation using PSI
     private fun extractReplacementMap(function: KtNamedFunction): Map<Int, String>? {
         // Find the annotation in the function
@@ -48,6 +64,12 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
             val (key, value) = entry.split(":")
             key.toIntOrNull()?.let { intKey -> intKey to value }
         }.toMap()
+    }
+
+    // Extract fileName from @Nullable annotation
+    private fun getFileNameFromAnnotation(annotation: KtAnnotationEntry): String? {
+        val valueArgument = annotation.valueArguments.firstOrNull() ?: return null
+        return valueArgument.getArgumentExpression()?.text?.removeSurrounding("\"")
     }
 
     // Extract the "stringValues" from the annotation entry
