@@ -131,6 +131,12 @@ class ReplaceIntWithMappedStringQuickFix(
             if (declaration != null) {
                 println("DEBUG: Found variable declaration for ${declaration.name}")
 
+                // Check if the variable is in a loop or condition; skip replacement if dynamic
+                if (isDynamicVariable(declaration, functionCall)) {
+                    println("DEBUG: Skipping replacement due to dynamic variable changes.")
+                    return
+                }
+
                 // Get the most recent value assigned to the variable
                 val intValue = getLatestAssignedValue(declaration, functionCall)
 
@@ -178,5 +184,29 @@ class ReplaceIntWithMappedStringQuickFix(
 
         // If no assignments were found, return the initial value of the variable
         return latestValue ?: (variableDeclaration.initializer as? KtConstantExpression)?.text?.toIntOrNull()
+    }
+
+    // Check if the variable's value changes dynamically (e.g., in a loop or conditional)
+    private fun isDynamicVariable(variableDeclaration: KtVariableDeclaration, functionCall: KtCallExpression): Boolean {
+        var isDynamic = false
+
+        // Check if the variable is being modified inside loops or conditionals
+        val blockExpression = variableDeclaration.parent
+
+        // Iterate through all descendant expressions in the block and check for dynamic changes
+        blockExpression?.forEachDescendantOfType<KtBinaryExpression> { binaryExpression ->
+            if (binaryExpression.left?.text == variableDeclaration.name) {
+                val assignedExpression = binaryExpression.right
+
+                // Check if the assigned value is something other than a constant (e.g., a loop variable, function result)
+                if (assignedExpression !is KtConstantExpression) {
+                    println("DEBUG: Variable is assigned dynamically (not a constant value): ${assignedExpression?.text}")
+                    isDynamic = true
+                }
+            }
+        }
+
+        // If no dynamic assignments are found, it's safe to replace the variable
+        return isDynamic
     }
 }
