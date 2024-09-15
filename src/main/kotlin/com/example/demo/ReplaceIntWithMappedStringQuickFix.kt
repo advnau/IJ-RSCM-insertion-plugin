@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.psiUtil.forEachDescendantOfType
 
 class ReplaceIntWithMappedStringQuickFix(
     private val functionName: String,
@@ -130,19 +131,10 @@ class ReplaceIntWithMappedStringQuickFix(
             if (declaration != null) {
                 println("DEBUG: Found variable declaration for ${declaration.name}")
 
-                // Get the initializer of the variable
-                val initializer = declaration.initializer
+                // Get the most recent value assigned to the variable
+                val intValue = getLatestAssignedValue(declaration, functionCall)
 
-                if (initializer != null) {
-                    println("DEBUG: Initializer found: ${initializer.text}")
-                } else {
-                    println("DEBUG: No initializer found for the variable.")
-                    return
-                }
-
-                if (initializer is KtConstantExpression) {
-                    // Check if the variable is initialized with an Int constant
-                    val intValue = initializer.text.toIntOrNull()
+                if (intValue != null) {
                     println("DEBUG: Resolved variable value: $intValue")
 
                     if (intValue != null && intToStringMap.containsKey(intValue)) {
@@ -165,5 +157,26 @@ class ReplaceIntWithMappedStringQuickFix(
         } else {
             println("DEBUG: Failed to resolve the variable reference using resolveMainReferenceToDescriptors.")
         }
+    }
+
+    // Get the latest value assigned to a variable before the function call
+    private fun getLatestAssignedValue(variableDeclaration: KtVariableDeclaration, functionCall: KtCallExpression): Int? {
+        val blockExpression = variableDeclaration.parent
+        var latestValue: Int? = null
+
+        // Iterate through all statements in the block to find assignments to the variable
+        blockExpression?.forEachDescendantOfType<KtBinaryExpression> { binaryExpression ->
+            if (binaryExpression.left?.text == variableDeclaration.name && binaryExpression.right is KtConstantExpression) {
+                val assignedValue = (binaryExpression.right as KtConstantExpression).text.toIntOrNull()
+
+                // Make sure the assignment happens before the function call
+                if (assignedValue != null && binaryExpression.textOffset < functionCall.textOffset) {
+                    latestValue = assignedValue
+                }
+            }
+        }
+
+        // If no assignments were found, return the initial value of the variable
+        return latestValue ?: (variableDeclaration.initializer as? KtConstantExpression)?.text?.toIntOrNull()
     }
 }
