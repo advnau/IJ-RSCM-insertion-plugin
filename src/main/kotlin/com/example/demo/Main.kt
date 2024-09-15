@@ -7,8 +7,17 @@ object Main {
 
         exampleFunction(123, 124)
 
+        val constant_value = 123;
+        exampleFunction(constant_value, 124)// this replaces
+
+        var var_value = 123;
+        var_value = 124
+        exampleFunction(var_value, 124) // this replaces with 123, but it shouldnt
+
+        exampleFunction(CONST_VAL, 124) // this replaces
     }
 
+    const val CONST_VAL = 123
 
     fun exampleFunction(param1: Int, param2: Int) {
         println(param1)
