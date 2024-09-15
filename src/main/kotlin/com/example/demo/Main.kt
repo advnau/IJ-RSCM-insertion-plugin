@@ -12,8 +12,16 @@ object Main {
 
         var var_value = 123;
         var_value = 124
-        exampleFunction(var_value, 124) // this replaces with 123, but it shouldnt
+        exampleFunction(var_value, 124) // this does not get replaced due to variable changing later
 
+        for(i in 0.. 300) {
+            var_value = i
+            exampleFunction(var_value, 124)
+        }
+        var beans = 123
+        if(true) {
+            exampleFunction(beans, 124) // this gets replaced
+        }
         exampleFunction(CONST_VAL, 124) // this replaces
     }
 
