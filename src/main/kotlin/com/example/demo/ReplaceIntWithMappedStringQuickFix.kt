@@ -6,25 +6,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.forEachDescendantOfType
 
 class ReplaceIntWithMappedStringQuickFix(
     private val functionName: String,
-    private val parameterName: String
+    private val parameterName: String,
+    private val intToStringMap: Map<Int, String>
 ) : LocalQuickFix {
-
-    // Map of Int to String for replacement
-    private val intToStringMap = mapOf(123 to "oneTwoThree", 124 to "oneTwoFour")
 
     override fun getName(): String = "Replace Int arguments with mapped String in all calls"
 
