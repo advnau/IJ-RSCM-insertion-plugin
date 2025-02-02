@@ -18,7 +18,7 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
 
                 // Check for the @Nullable annotation
                 val nullableAnnotation = function.annotationEntries.find {
-                    it.shortName?.asString() == "Nullable"
+                    it.shortName?.asString() == "Rscm"
                 } ?: return
 
                 // Get the value from the @Nullable annotation (which we are temporarily using)
