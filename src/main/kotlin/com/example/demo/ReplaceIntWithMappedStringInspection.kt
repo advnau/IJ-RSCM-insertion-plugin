@@ -2,8 +2,9 @@ package com.example.demo
 
 import com.intellij.codeInspection.*
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
+//import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.*
+import  org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 
 class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
 
