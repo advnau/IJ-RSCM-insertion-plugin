@@ -64,4 +64,16 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
+
+    val copyPluginZip by registering(Copy::class) {
+        dependsOn("buildPlugin")
+        from(layout.buildDirectory.dir("distributions"))
+        include("*.zip")
+        rename { "plugin.zip" }
+        into(layout.projectDirectory.dir("artifacts"))
+    }
+
+    named("buildPlugin") {
+        finalizedBy(copyPluginZip)
+    }
 }
