@@ -23,10 +23,15 @@ After running, the rscm values will replace the old int ones where possible.
 <img width="816" height="497" alt="image" src="https://github.com/user-attachments/assets/95ca7f6e-850a-4dc3-9e1b-16cc572657be" />
 
 
-Shortcomings:
+## Configuration
 
-Hardcoded RSCM path. Currently set to "C:\\Users\\Home\\Downloads\\rscm\\"
+Open **Settings/Preferences → Tools → RSCM Import Settings** to point the plugin at the folder containing your `.rscm` files. The configured path is persisted between IDE restarts and can be updated at any time.
 
-Uses old RSCM format. RSCM now supports subtypes. This doesnt and uses the old format of splitting strings with : rather than the = like now.
+## Updating the packaged plugin
 
-Does not update the calling method, after changing the user needs to properly update the code to handle the Strings instead of ints.
+Trigger the **Build and commit plugin artifact** GitHub Actions workflow to rebuild the plugin ZIP via Gradle and commit the refreshed `artifacts/plugin.zip` back to the repository. The workflow is manual (`workflow_dispatch`) to avoid noisy commits and will skip the commit when no artifact changes are detected. Locally, run `./gradlew copyPluginZip` to produce the same `artifacts/plugin.zip` file for review.
+
+## Known gaps
+
+- Uses old RSCM format. RSCM now supports subtypes. This doesnt and uses the old format of splitting strings with : rather than the = like now.
+- Does not update the calling method, after changing the user needs to properly update the code to handle the Strings instead of ints.

@@ -4,9 +4,12 @@ import com.intellij.codeInspection.*
 import com.intellij.psi.PsiElementVisitor
 //import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.*
-import  org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
+import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
+import com.example.demo.settings.RscmSettingsState
+import com.intellij.openapi.diagnostic.Logger
 
 class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
+    private val logger = Logger.getInstance(ReplaceIntWithMappedStringInspection::class.java)
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
         return object : KtVisitorVoid() {
@@ -26,7 +29,7 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
                 val fileName = getFileNameFromAnnotation(nullableAnnotation) ?: return
 
                 // Get the map corresponding to the file name
-                val replacementMap = mapOfMaps[fileName] ?: return
+                val replacementMap = loadReplacementMap(fileName) ?: return
 
                 // Find all parameters of type Int
                 val intParameters = function.valueParameters.filter { it.typeReference?.text == "Int" }
@@ -46,8 +49,14 @@ class ReplaceIntWithMappedStringInspection : AbstractKotlinInspection() {
         }
     }
 
-    private val mapOfMaps: Map<String, Map<Int, String>> by lazy {
-        loadRscmFiles("C:\\Users\\Home\\Downloads\\rscm\\")
+    private fun loadReplacementMap(fileName: String): Map<Int, String>? {
+        val settings = RscmSettingsState.getInstance()
+        val configuredPath = settings.rscmDirectory.ifBlank { RscmSettingsState.defaultPath() }
+        val mapOfMaps = loadRscmFiles(configuredPath)
+        if (mapOfMaps.isEmpty()) {
+            logger.warn("No RSCM files discovered in $configuredPath")
+        }
+        return mapOfMaps[fileName]
     }
 
     // Function to extract the map from the @MagicConstant annotation using PSI
